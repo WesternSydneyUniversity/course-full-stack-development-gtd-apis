@@ -1,3 +1,5 @@
+"use client";
+
 import { CreateTask } from "~/components/create-task";
 import { TaskItem } from "./task-item";
 import styles from "./task-list.module.css";
@@ -9,9 +11,19 @@ export type Task = {
   completed: boolean;
 };
 
-export async function TaskList() {
-  // TODO: Fetch tasks from server
-  const tasks: Task[] = [];
+import { useSession } from "next-auth/react";
+import { api } from "~/trpc/react";
+
+export function TaskList() {
+  const session = useSession();
+  const tasksQuery = api.tasks.tasks.useQuery(undefined, {
+    enabled: !!session.data
+  });
+
+  if (tasksQuery.isLoading) {
+    return <div>Loading tasks...</div>;
+  }
+  const tasks = tasksQuery.data ?? [];
 
   const activeTasks = tasks.filter((task) => !task.completed);
 
